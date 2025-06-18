@@ -22,7 +22,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from '@/components/ui/select.tsx'
-import { Check } from 'lucide-react'
+import {Check, Loader2Icon} from 'lucide-react'
 import { useAppContext } from '@/context/useAppContext.ts'
 import type { CreateQuestionDto, QuestionDto } from '@/services/quiz-service.ts'
 
@@ -59,7 +59,8 @@ const AddQuestionDialog = (props: {
   currentQuestions: QuestionDto[]
 }) => {
   const textInput = useInput('', validateText)
-  const [options, setOptions] = useState<Option[]>([createInitialOption()])
+  const [options, setOptions] = useState<Option[]>([createInitialOption(), createInitialOption()])
+  const [isQuestionGenerationInProgress, setIsQuestionGenerationInProgress] = useState(false);
   const { quizService, aiQuestionService } = useAppContext()
 
   const addOption = () => {
@@ -108,9 +109,11 @@ const AddQuestionDialog = (props: {
   }
 
   function generateQuestionWithAi() {
+    setIsQuestionGenerationInProgress(true);
     aiQuestionService
       .generateNewQuestion(props.currentQuestions)
       .then((question) => {
+        setIsQuestionGenerationInProgress(false);
         setOptions(
           question.options.map((optionDto) => ({
             text: optionDto.text,
@@ -123,7 +126,7 @@ const AddQuestionDialog = (props: {
 
   return (
     <Dialog open={props.open} onOpenChange={() => props.onClosed(undefined)}>
-      <DialogContent>
+      <DialogContent className="min-w-5/6 max-w-6xl">
         <form
           onSubmit={(event) => {
             event.preventDefault()
@@ -138,16 +141,22 @@ const AddQuestionDialog = (props: {
             </DialogDescription>
           </DialogHeader>
 
-          <Button type="button" onClick={generateQuestionWithAi}>
-            Generate with AI
-          </Button>
+          <div className="flex justify-end mt-3">
+            <Button type="button" onClick={generateQuestionWithAi}>
+              { isQuestionGenerationInProgress ?
+                  <Loader2Icon className="animate-spin" /> :
+                  <img src="src/assets/openai_white.png" height="25px" width="25px"/>
+              }
+              Generate with AI
+            </Button>
+          </div>
+
 
           <div className="grid gap-4 mt-5">
             <CustomInput
               id="text"
               name="text"
               label="Frage"
-              placeholder="Was ist 1+1"
               touched={textInput.touched}
               errors={textInput.errors}
               value={textInput.value}
@@ -177,6 +186,11 @@ const AddQuestionDialog = (props: {
               // FIXME Antwort validieren
             ))}
 
+
+            <Button type="button" variant="link" onClick={addOption}>
+              Weitere Antwort hinzufügen
+            </Button>
+
             <div className="grid gap-3">
               <Label>Richtige Antwort</Label>
               <Select
@@ -200,9 +214,6 @@ const AddQuestionDialog = (props: {
               </Select>
             </div>
 
-            <Button type="button" onClick={addOption}>
-              Weitere Antwort hinzufügen
-            </Button>
           </div>
 
           <DialogFooter className="mt-5">
