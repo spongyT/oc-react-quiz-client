@@ -43,20 +43,20 @@ export function validateOption(value: string): string[] {
 interface Option {
   text: string,
   correct: boolean,
-  valid: boolean
 }
 
 function createInitialOption(): Option {
-  return {text: '', correct: false, valid: false}
+  return {text: '', correct: false}
 }
 
 const AddQuestionDialog = (props: {
   open: boolean,
-  onClosed: (createdQuestion?: QuestionDto) => void
+  onClosed: (createdQuestion?: QuestionDto) => void,
+  currentQuestions: QuestionDto[]
 }) => {
   const textInput = useInput('', validateText);
   const [options, setOptions] = useState<Option[]>([createInitialOption()]);
-  const {quizService} = useAppContext();
+  const {quizService, aiQuestionService} = useAppContext();
 
   const addOption = () => {
     setOptions([...options, createInitialOption()])
@@ -80,12 +80,32 @@ const AddQuestionDialog = (props: {
     setOptions(updatedOptions)
   }
 
+  function resetInputs() {
+    setOptions([]);
+    textInput.reset();
+  }
+
   const validateFormDataAndCreateQuestion = () => {
     const dto: CreateQuestionDto = {
       text: textInput.value,
       options: options.map(option => ({text: option.text, correct: option.correct}))
     }
-    quizService.createQuestion(dto).then(result => props.onClosed(result)).catch(error => console.error(error))
+    quizService.createQuestion(dto)
+    .then(result => {
+      resetInputs();
+      props.onClosed(result);
+    })
+    .catch(error => console.error(error))
+  }
+
+  function generateQuestionWithAi() {
+    aiQuestionService.generateNewQuestion(props.currentQuestions).then(question => {
+      setOptions(question.options.map(optionDto => ({
+        text: optionDto.text,
+        correct: optionDto.correct
+      })));
+      textInput.setValue(question.text);
+    })
   }
 
   return (<Dialog open={props.open} onOpenChange={() => props.onClosed(undefined)}>
@@ -100,6 +120,8 @@ const AddQuestionDialog = (props: {
                 Für die Frage hinzu und erstelle mindestens 2 Antwortmöglichkeiten.
               </DialogDescription>
             </DialogHeader>
+
+            <Button type="button" onClick={generateQuestionWithAi}>Generate with AI</Button>
 
             <div className="grid gap-4 mt-5">
               <CustomInput id="text" name="text" label="Frage" placeholder="Was ist 1+1"
@@ -139,7 +161,8 @@ const AddQuestionDialog = (props: {
                     <SelectGroup>
                       <SelectLabel>Richtige Antwort</SelectLabel>
                       {options.map(((_option, index) => (
-                          <SelectItem key={index} value={String(index)}>Antwort {index + 1}</SelectItem>)))}
+                          <SelectItem key={index}
+                                      value={String(index)}>Antwort {index + 1}</SelectItem>)))}
                     </SelectGroup>
                   </SelectContent>
                 </Select>

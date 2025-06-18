@@ -21,5 +21,5 @@ export function useInput(
     setTouched(false)
   }
 
-  return { value, onChange, onBlur, hasError, errors, reset, touched }
+  return { value, onChange, onBlur, hasError, errors, reset, touched, setValue }
 }

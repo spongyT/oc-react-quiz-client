@@ -1,4 +1,4 @@
-import type {CreateQuestionDto, QuestionDto} from "../services/quiz-service.ts";
+import type {QuestionDto} from "../services/quiz-service.ts";
 import {useEffect, useState} from "react";
 import QuestionItemComponent from "./components/question-item.component.tsx";
 import {useAppContext} from "../context/useAppContext.ts";
@@ -31,7 +31,8 @@ const QuestionsComponent = () => {
         <CirclePlus/> Frage hinzufügen
       </Button>
       <AddQuestionDialog open={questionDialogOpen}
-                         onClosed={(value) => onAddQuestionDialogClosed(value)}/>
+                         onClosed={(value) => onAddQuestionDialogClosed(value)}
+                         currentQuestions={questions}/>
     </div>
     <ul className="space-y-6">
       {questions.map(question => <li key={question.id}><QuestionItemComponent question={question}/>
