@@ -22,9 +22,10 @@ import {
   SelectTrigger,
   SelectValue,
 } from '@/components/ui/select.tsx'
-import {Check, Loader2Icon} from 'lucide-react'
+import { Check } from 'lucide-react'
 import { useAppContext } from '@/context/useAppContext.ts'
 import type { CreateQuestionDto, QuestionDto } from '@/services/quiz-service.ts'
+import { toast } from 'sonner'
 
 export function validateText(value: string): string[] {
   const errors: string[] = []
@@ -59,8 +60,14 @@ const AddQuestionDialog = (props: {
   currentQuestions: QuestionDto[]
 }) => {
   const textInput = useInput('', validateText)
-  const [options, setOptions] = useState<Option[]>([createInitialOption(), createInitialOption()])
-  const [isQuestionGenerationInProgress, setIsQuestionGenerationInProgress] = useState(false);
+  const [options, setOptions] = useState<Option[]>([
+    createInitialOption(),
+    createInitialOption(),
+  ])
+  const [isQuestionGenerationInProgress, setIsQuestionGenerationInProgress] =
+    useState(false)
+  const [isSaveInProgress, setIsSaveInProgress] = useState(false)
+  const [saveError, setSaveError] = useState<string | undefined>(undefined)
   const { quizService, aiQuestionService } = useAppContext()
 
   const addOption = () => {
@@ -91,6 +98,11 @@ const AddQuestionDialog = (props: {
     textInput.reset()
   }
 
+  function resetAndCloseDialog() {
+    resetInputs()
+    props.onClosed()
+  }
+
   const validateFormDataAndCreateQuestion = () => {
     const dto: CreateQuestionDto = {
       text: textInput.value,
@@ -99,21 +111,36 @@ const AddQuestionDialog = (props: {
         correct: option.correct,
       })),
     }
+    setIsSaveInProgress(true)
+    setSaveError(undefined)
     quizService
       .createQuestion(dto)
       .then((result) => {
+        console.log(`Response ${result}`)
+        toast.success('Frage erfolgreich gespeichert', {
+          action: {
+            label: 'Ansehen',
+            onClick: () => resetAndCloseDialog(),
+          },
+        })
+        setIsSaveInProgress(false)
         resetInputs()
-        props.onClosed(result)
+        // props.onClosed(result)
       })
-      .catch((error) => console.error(error))
+      .catch((error) => {
+        console.error(error)
+        setIsSaveInProgress(false)
+        toast.error('Fehler beim Speichern der Frage im Backend')
+        setSaveError(JSON.stringify(error.response.data))
+      })
   }
 
   function generateQuestionWithAi() {
-    setIsQuestionGenerationInProgress(true);
+    setIsQuestionGenerationInProgress(true)
     aiQuestionService
       .generateNewQuestion(props.currentQuestions)
       .then((question) => {
-        setIsQuestionGenerationInProgress(false);
+        setIsQuestionGenerationInProgress(false)
         setOptions(
           question.options.map((optionDto) => ({
             text: optionDto.text,
@@ -142,15 +169,21 @@ const AddQuestionDialog = (props: {
           </DialogHeader>
 
           <div className="flex justify-end mt-3">
-            <Button type="button" onClick={generateQuestionWithAi}>
-              { isQuestionGenerationInProgress ?
-                  <Loader2Icon className="animate-spin" /> :
-                  <img src="src/assets/openai_white.png" height="25px" width="25px"/>
-              }
+            <Button
+              type="button"
+              onClick={generateQuestionWithAi}
+              isLoading={isQuestionGenerationInProgress}
+            >
+              {!isQuestionGenerationInProgress && (
+                <img
+                  src="src/assets/openai_white.png"
+                  height="25px"
+                  width="25px"
+                />
+              )}
               Generate with AI
             </Button>
           </div>
-
 
           <div className="grid gap-4 mt-5">
             <CustomInput
@@ -186,7 +219,6 @@ const AddQuestionDialog = (props: {
               // FIXME Antwort validieren
             ))}
 
-
             <Button type="button" variant="link" onClick={addOption}>
               Weitere Antwort hinzufügen
             </Button>
@@ -213,14 +245,18 @@ const AddQuestionDialog = (props: {
                 </SelectContent>
               </Select>
             </div>
-
           </div>
 
+          {saveError && (
+            <div className="text-red-500 mt-3">Fehlermeldung: {saveError}</div>
+          )}
           <DialogFooter className="mt-5">
             <DialogClose asChild>
               <Button variant="outline">Abbrechen</Button>
             </DialogClose>
-            <Button type="submit">Speichern</Button>
+            <Button isLoading={isSaveInProgress} type="submit">
+              Speichern
+            </Button>
           </DialogFooter>
         </form>
       </DialogContent>

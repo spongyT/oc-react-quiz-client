@@ -1,3 +1,5 @@
+import axios from 'axios'
+
 export interface QuestionDto {
   id: string
   text: string
@@ -23,27 +25,11 @@ export interface CreateOptionDto {
 export class QuizService {
   createQuestion(create: CreateQuestionDto): Promise<QuestionDto> {
     const url = 'https://oc-workshop.waldemarlehner.de/questions'
-    const options = {
-      method: 'POST',
-      headers: { 'content-type': 'application/json' },
-      body: JSON.stringify(create),
-    }
-
-    try {
-      return fetch(url, options).then((res) => res.json())
-    } catch (error) {
-      return Promise.reject(error)
-    }
+    return axios.post(url, create).then((res) => res.data)
   }
 
   listQuestions(): Promise<QuestionDto[]> {
     const url = 'https://oc-workshop.waldemarlehner.de/questions'
-    const options = { method: 'GET' }
-
-    try {
-      return fetch(url, options).then((res) => res.json())
-    } catch (error) {
-      return Promise.reject(error)
-    }
+    return axios.get(url).then((res) => res.data)
   }
 }

@@ -33,6 +33,7 @@ const QuestionsComponent = () => {
         <Button variant="default" onClick={() => setQuestionDialogOpen(true)}>
           <CirclePlus /> Frage hinzufügen
         </Button>
+
         <AddQuestionDialog
           open={questionDialogOpen}
           onClosed={(value) => onAddQuestionDialogClosed(value)}
