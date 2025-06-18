@@ -169,7 +169,6 @@ export class AiQuestionService {
       
       Folgende Fragen haben wir bereits: ${existingQuestions}. Die Fragen sollen sich nicht wiederholen.
       
-      Die Frage sollte maximal 100 Zeichen lang sein. 
       Gib mir 3 unterschiedliche Antwortmöglichkeiten und markiere die richtige Antwort. 
       Die richtige Antwort soll an der Position ${correctAnswerPosition} stehen.
       Ich möchte als Antwort nur ein JSON von dir erhalten. Dieses soll wie folgt aussehen:
