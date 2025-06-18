@@ -1,25 +1,25 @@
-import type {CreateQuestionDto, QuestionDto} from "@/services/quiz-service.ts";
-import {zodTextFormat} from 'openai/helpers/zod';
-import {z} from "zod";
+import type { CreateQuestionDto, QuestionDto } from '@/services/quiz-service.ts'
+import { zodTextFormat } from 'openai/helpers/zod'
+import { z } from 'zod'
 
-import OpenAI from "openai";
+import OpenAI from 'openai'
 
 export const QuestionItemInputZod = z.object({
   text: z.string().min(1),
   options: z
-  .array(
+    .array(
       z.object({
         text: z.string(),
         correct: z.boolean(),
-      })
-  )
-  .min(2)
-  .max(4)
-  .refine(
+      }),
+    )
+    .min(2)
+    .max(4)
+    .refine(
       (e) => e.filter((f) => f.correct).length === 1,
-      "only one item can be marked as correct"
-  ),
-});
+      'only one item can be marked as correct',
+    ),
+})
 
 const OC_HARD_FACTS = `
 Kennzahlen (Zahlenwerk)
@@ -132,27 +132,31 @@ Fachliche Expertise gebündelt
 Wir bündeln unsere Fähigkeiten noch stärker als bisher, um die aktuellen Themen unserer Kunden mit höchster fachlicher Expertise zu bedienen. Für diese Expertise stehen unsere Teams von OPITZ CONSULTING Software, OPITZ CONSULTING Analytics, OPITZ CONSULTING Systems und OPITZ CONSULTING Public. #zukunftswirksam
 `
 
-
 export class AiQuestionService {
-
-  lastGenerations: CreateQuestionDto[] = [];
+  lastGenerations: CreateQuestionDto[] = []
 
   constructor() {
-    console.log("Env" + import.meta.env.VITE_OPENAI_API_KEY)
+    console.log('Env' + import.meta.env.VITE_OPENAI_API_KEY)
   }
 
-  generateNewQuestion(currentQuestions: QuestionDto[]): Promise<CreateQuestionDto> {
+  generateNewQuestion(
+    currentQuestions: QuestionDto[],
+  ): Promise<CreateQuestionDto> {
     const client = new OpenAI({
       apiKey: import.meta.env.VITE_OPENAI_API_KEY,
-      dangerouslyAllowBrowser: true
-    });
-    const correctAnswerPosition = Math.trunc(Math.random() * 3) + 1;
-    const existingQuestions = [...currentQuestions, ...this.lastGenerations].map(question => question.text);
+      dangerouslyAllowBrowser: true,
+    })
+    const correctAnswerPosition = Math.trunc(Math.random() * 3) + 1
+    const existingQuestions = [
+      ...currentQuestions,
+      ...this.lastGenerations,
+    ].map((question) => question.text)
 
-    return client.responses.parse({
-      model: "gpt-4.1",
-      instructions: "Die Antwort darf nur JSON beinhalten.",
-      input: `
+    return client.responses
+      .parse({
+        model: 'gpt-4.1',
+        instructions: 'Die Antwort darf nur JSON beinhalten.',
+        input: `
       Ich mache ein Quiz über die Firma Optiz Consulting.
       
       Bitte formuliere mir ein neue Quizfrage. 
@@ -175,20 +179,20 @@ export class AiQuestionService {
       - ein Attribut "text" vom Typ string, welches die Antwortmöglichkeit enthält 
       - ein Attribut "correct" vom Typ boolean, welches true ist wenn es die korrekte Antwort hat 
       `,
-      text: {
-        format: zodTextFormat(QuestionItemInputZod, "question_response")
-      },
-    }).then(response => {
-      console.log(response.output_parsed);
-      if (response.output_parsed) {
-        this.lastGenerations.push(response.output_parsed)
-        return response.output_parsed;
-      } else {
-        return Promise.reject(`Answer from AI contained no valid JSON ${response.output_text}`)
-      }
-
-    });
-
-
+        text: {
+          format: zodTextFormat(QuestionItemInputZod, 'question_response'),
+        },
+      })
+      .then((response) => {
+        console.log(response.output_parsed)
+        if (response.output_parsed) {
+          this.lastGenerations.push(response.output_parsed)
+          return response.output_parsed
+        } else {
+          return Promise.reject(
+            `Answer from AI contained no valid JSON ${response.output_text}`,
+          )
+        }
+      })
   }
 }

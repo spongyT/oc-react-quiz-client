@@ -1,8 +1,8 @@
-import {type ChangeEvent, useState} from 'react'
+import { type ChangeEvent, useState } from 'react'
 
 export function useInput(
   defaultValue: string,
-  validateFn: (value: string) => string[]
+  validateFn: (value: string) => string[],
 ) {
   const [value, setValue] = useState<string>(defaultValue)
   const [touched, setTouched] = useState<boolean>(false)

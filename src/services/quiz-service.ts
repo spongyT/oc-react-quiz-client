@@ -21,31 +21,29 @@ export interface CreateOptionDto {
 }
 
 export class QuizService {
-
   createQuestion(create: CreateQuestionDto): Promise<QuestionDto> {
-    const url = 'https://oc-workshop.waldemarlehner.de/questions';
+    const url = 'https://oc-workshop.waldemarlehner.de/questions'
     const options = {
       method: 'POST',
-      headers: {'content-type': 'application/json'},
-      body: JSON.stringify(create)
-    };
+      headers: { 'content-type': 'application/json' },
+      body: JSON.stringify(create),
+    }
 
     try {
-      return fetch(url, options).then(res => res.json());
+      return fetch(url, options).then((res) => res.json())
     } catch (error) {
-      return Promise.reject(error);
+      return Promise.reject(error)
     }
   }
 
-
   listQuestions(): Promise<QuestionDto[]> {
-    const url = 'https://oc-workshop.waldemarlehner.de/questions';
-    const options = {method: 'GET'};
+    const url = 'https://oc-workshop.waldemarlehner.de/questions'
+    const options = { method: 'GET' }
 
     try {
-      return fetch(url, options).then(res => res.json());
+      return fetch(url, options).then((res) => res.json())
     } catch (error) {
-      return Promise.reject(error);
+      return Promise.reject(error)
     }
   }
 }
