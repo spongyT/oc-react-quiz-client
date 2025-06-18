@@ -7,11 +7,8 @@ function HomeNavigation() {
           <span className="text-xl font-bold">Hackathon Quiz-Master</span>
 
           <nav className="space-x-6">
-            <Link to="/" className="hover:underline">
+            <Link to="/questions" className="hover:underline">
               Übersicht
-            </Link>
-            <Link to="/add" className="hover:underline">
-              Frage hinzufügen
             </Link>
           </nav>
         </div>

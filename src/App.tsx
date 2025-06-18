@@ -12,7 +12,7 @@ function App() {
 
         <AppContext value={APP_CONTEXT}>
           <Routes>
-            <Route path="/" element={<div/>}/>
+            <Route path="/" element={<QuestionsComponent/>}/>
             <Route path="/questions" element={<QuestionsComponent/>}/>
           </Routes>
         </AppContext>

@@ -1,4 +1,4 @@
-import type {QuestionDto} from "../services/quiz-service.ts";
+import type {CreateQuestionDto, QuestionDto} from "../services/quiz-service.ts";
 import {useEffect, useState} from "react";
 import QuestionItemComponent from "./components/question-item.component.tsx";
 import {useAppContext} from "../context/useAppContext.ts";
@@ -17,13 +17,21 @@ const QuestionsComponent = () => {
     });
   }, [quizService]);
 
+  function onAddQuestionDialogClosed(value: QuestionDto | undefined) {
+    setQuestionDialogOpen(false);
+    if (value) {
+      setQuestions([...questions, value]);
+    }
+  }
+
   return (<div className="max-w-4xl mx-auto p-6">
     <div className="flex justify-between">
       <span className="text-3xl font-bold mb-6 xtext-center">Fragenverwaltung</span>
       <Button variant="default" onClick={() => setQuestionDialogOpen(true)}>
         <CirclePlus/> Frage hinzufügen
       </Button>
-      <AddQuestionDialog open={questionDialogOpen} onOpenChange={setQuestionDialogOpen}/>
+      <AddQuestionDialog open={questionDialogOpen}
+                         onClosed={(value) => onAddQuestionDialogClosed(value)}/>
     </div>
     <ul className="space-y-6">
       {questions.map(question => <li key={question.id}><QuestionItemComponent question={question}/>
